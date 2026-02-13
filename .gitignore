@@ -1,0 +1,16 @@
+# Node
+node_modules/
+dist/
+
+# VSCode
+.vscode/
+
+# Environment variables
+.env
+
+# Logs
+*.log
+
+# Build output from frontend
+patientor-frontend/node_modules/
+patientor-frontend/dist/
