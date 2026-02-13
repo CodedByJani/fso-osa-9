@@ -1,0 +1,34 @@
+### Add a new patient (valid)
+POST http://localhost:3003/api/patients
+Content-Type: application/json
+
+{
+  "name": "Lara Croft",
+  "dateOfBirth": "1990-02-14",
+  "ssn": "123-45-6789",
+  "gender": "female",
+  "occupation": "Archaeologist"
+}
+
+### Add a patient with invalid gender (should fail)
+POST http://localhost:3003/api/patients
+Content-Type: application/json
+
+{
+  "name": "Indiana Jones",
+  "dateOfBirth": "1985-06-01",
+  "ssn": "987-65-4321",
+  "gender": "adventurer",
+  "occupation": "Archaeologist"
+}
+
+### Add a patient missing required field (should fail)
+POST http://localhost:3003/api/patients
+Content-Type: application/json
+
+{
+  "name": "Alice",
+  "dateOfBirth": "1992-12-12",
+  "gender": "female",
+  "occupation": "Nurse"
+}
