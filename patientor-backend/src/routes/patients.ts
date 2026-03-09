@@ -5,18 +5,30 @@ import { patientSchema, PatientInput } from "../utils/patientUtils";
 
 const router = express.Router();
 
+router.get("/", (_req, res) => {
+  res.json(patients);
+});
+
+router.get("/:id", (req, res) => {
+  const patient = patients.find((p) => p.id === req.params.id);
+
+  if (patient) {
+    res.json(patient);
+  } else {
+    res.status(404).send({ error: "Patient not found" });
+  }
+});
+
 router.post("/", (req, res) => {
   try {
-    // Validate input
     const parsedPatient: PatientInput = patientSchema.parse(req.body);
 
-    // Create new patient object
     const newPatient = {
       id: uuid(),
       ...parsedPatient,
+      entries: [],
     };
 
-    // Add to in-memory data
     patients.push(newPatient);
 
     res.json(newPatient);
