@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Patient, PatientFormValues } from "../types";
+import type { Patient, PatientFormValues, Entry } from "../types";
 import { apiBaseUrl } from "../constants";
 
 const getAll = async (): Promise<Patient[]> => {
@@ -12,14 +12,25 @@ const create = async (object: PatientFormValues): Promise<Patient> => {
   return data;
 };
 
-// NEW: fetch single patient by ID
 const getById = async (id: string): Promise<Patient> => {
   const { data } = await axios.get<Patient>(`${apiBaseUrl}/patients/${id}`);
+  return data;
+};
+
+const addEntry = async (
+  patientId: string,
+  entry: Omit<Entry, "id">,
+): Promise<Entry> => {
+  const { data } = await axios.post<Entry>(
+    `${apiBaseUrl}/patients/${patientId}/entries`,
+    entry,
+  );
   return data;
 };
 
 export default {
   getAll,
   create,
-  getById, // add this
+  getById,
+  addEntry,
 };
