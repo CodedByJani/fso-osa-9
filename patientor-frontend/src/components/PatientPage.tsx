@@ -6,12 +6,14 @@ import WorkIcon from "@mui/icons-material/Work";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 
 import patientService from "../services/patients";
-import type { Patient, Entry } from "../types";
+import type { Patient, Entry, Diagnosis } from "../types";
 import AddEntryModal from "./AddEntryModal";
 
-interface PatientPageProps {}
+interface PatientPageProps {
+  diagnoses: Diagnosis[];
+}
 
-const PatientPage = ({}: PatientPageProps) => {
+const PatientPage = ({ diagnoses }: PatientPageProps) => {
   const { id } = useParams<{ id: string }>();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -28,10 +30,12 @@ const PatientPage = ({}: PatientPageProps) => {
         console.error(e);
       }
     };
+
     void fetchPatient();
   }, [id]);
 
   const openModal = () => setModalOpen(true);
+
   const closeModal = () => {
     setModalOpen(false);
     setError(undefined);
@@ -39,13 +43,16 @@ const PatientPage = ({}: PatientPageProps) => {
 
   const submitNewEntry = async (entry: Omit<Entry, "id">) => {
     if (!id) return;
+
     try {
       const newEntry = await patientService.addEntry(id, entry);
+
       setPatient(
         patient
           ? { ...patient, entries: patient.entries.concat(newEntry) }
           : null,
       );
+
       closeModal();
     } catch (e: unknown) {
       setError("Failed to add entry");
@@ -70,35 +77,50 @@ const PatientPage = ({}: PatientPageProps) => {
   return (
     <Container>
       <Typography variant="h4">{patient.name}</Typography>
+
       <Typography>
         <strong>SSN:</strong> {patient.ssn}
       </Typography>
+
       <Typography>
         <strong>Gender:</strong> {patient.gender}
       </Typography>
+
       <Typography>
         <strong>Date of Birth:</strong> {patient.dateOfBirth}
       </Typography>
+
       <Typography>
         <strong>Occupation:</strong> {patient.occupation}
       </Typography>
 
       <Divider sx={{ my: 2 }} />
+
       <Typography variant="h5">Entries</Typography>
+
       {patient.entries.length === 0 ? (
         <Typography>No entries yet.</Typography>
       ) : (
         patient.entries.map((entry) => (
           <Paper key={entry.id} sx={{ p: 2, my: 1 }}>
             <Typography>
-              {entry.date} - {entry.description} {renderIcon(entry.type)}
+              {entry.date} {renderIcon(entry.type)}
             </Typography>
+
+            <Typography>{entry.description}</Typography>
+
             <Typography>Specialist: {entry.specialist}</Typography>
-            {entry.diagnosisCodes && entry.diagnosisCodes.length > 0 && (
+
+            {entry.diagnosisCodes && (
               <ul>
-                {entry.diagnosisCodes.map((code) => (
-                  <li key={code}>{code}</li>
-                ))}
+                {entry.diagnosisCodes.map((code) => {
+                  const diagnosis = diagnoses.find((d) => d.code === code);
+                  return (
+                    <li key={code}>
+                      {code} {diagnosis?.name}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </Paper>
@@ -113,6 +135,7 @@ const PatientPage = ({}: PatientPageProps) => {
         modalOpen={modalOpen}
         onClose={closeModal}
         onSubmit={submitNewEntry}
+        diagnoses={diagnoses}
         error={error}
       />
     </Container>

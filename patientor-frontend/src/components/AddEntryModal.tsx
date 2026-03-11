@@ -6,49 +6,87 @@ import {
   TextField,
   Button,
   MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  OutlinedInput,
+  Checkbox,
+  ListItemText,
 } from "@mui/material";
-import type { Entry } from "../types";
+
+import type { Entry, Diagnosis } from "../types";
 
 interface Props {
   modalOpen: boolean;
   onClose: () => void;
   onSubmit: (entry: Omit<Entry, "id">) => void;
+  diagnoses: Diagnosis[];
   error?: string;
 }
 
-const AddEntryModal = ({ modalOpen, onClose, onSubmit, error }: Props) => {
+const AddEntryModal = ({
+  modalOpen,
+  onClose,
+  onSubmit,
+  diagnoses,
+  error,
+}: Props) => {
   const [type, setType] = useState<
     "Hospital" | "OccupationalHealthcare" | "HealthCheck"
   >("Hospital");
+
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
   const [specialist, setSpecialist] = useState("");
+
+  const [diagnosisCodes, setDiagnosisCodes] = useState<string[]>([]);
+
   const [employerName, setEmployerName] = useState("");
   const [sickLeaveStart, setSickLeaveStart] = useState("");
   const [sickLeaveEnd, setSickLeaveEnd] = useState("");
+
   const [dischargeDate, setDischargeDate] = useState("");
   const [dischargeCriteria, setDischargeCriteria] = useState("");
+
   const [healthCheckRating, setHealthCheckRating] = useState(0);
 
   const handleSubmit = () => {
-    let newEntry: any = { type, description, date, specialist };
+    let newEntry: any = {
+      type,
+      description,
+      date,
+      specialist,
+      diagnosisCodes,
+    };
 
-    if (type === "Hospital")
-      newEntry.discharge = { date: dischargeDate, criteria: dischargeCriteria };
+    if (type === "Hospital") {
+      newEntry.discharge = {
+        date: dischargeDate,
+        criteria: dischargeCriteria,
+      };
+    }
+
     if (type === "OccupationalHealthcare") {
       newEntry.employerName = employerName;
-      if (sickLeaveStart && sickLeaveEnd)
+
+      if (sickLeaveStart && sickLeaveEnd) {
         newEntry.sickLeave = {
           startDate: sickLeaveStart,
           endDate: sickLeaveEnd,
         };
+      }
     }
-    if (type === "HealthCheck") newEntry.healthCheckRating = healthCheckRating;
+
+    if (type === "HealthCheck") {
+      newEntry.healthCheckRating = healthCheckRating;
+    }
 
     onSubmit(newEntry);
+
     setDescription("");
     setDate("");
     setSpecialist("");
+    setDiagnosisCodes([]);
     setEmployerName("");
     setSickLeaveStart("");
     setSickLeaveEnd("");
@@ -65,7 +103,7 @@ const AddEntryModal = ({ modalOpen, onClose, onSubmit, error }: Props) => {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 400,
+          width: 450,
           bgcolor: "background.paper",
           p: 4,
         }}
@@ -96,6 +134,7 @@ const AddEntryModal = ({ modalOpen, onClose, onSubmit, error }: Props) => {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
+
         <TextField
           fullWidth
           margin="dense"
@@ -105,6 +144,7 @@ const AddEntryModal = ({ modalOpen, onClose, onSubmit, error }: Props) => {
           value={date}
           onChange={(e) => setDate(e.target.value)}
         />
+
         <TextField
           fullWidth
           margin="dense"
@@ -112,6 +152,31 @@ const AddEntryModal = ({ modalOpen, onClose, onSubmit, error }: Props) => {
           value={specialist}
           onChange={(e) => setSpecialist(e.target.value)}
         />
+
+        <FormControl fullWidth margin="dense">
+          <InputLabel>Diagnosis Codes</InputLabel>
+
+          <Select
+            multiple
+            value={diagnosisCodes}
+            onChange={(e) =>
+              setDiagnosisCodes(
+                typeof e.target.value === "string"
+                  ? e.target.value.split(",")
+                  : e.target.value,
+              )
+            }
+            input={<OutlinedInput label="Diagnosis Codes" />}
+            renderValue={(selected) => selected.join(", ")}
+          >
+            {diagnoses.map((d) => (
+              <MenuItem key={d.code} value={d.code}>
+                <Checkbox checked={diagnosisCodes.indexOf(d.code) > -1} />
+                <ListItemText primary={`${d.code} ${d.name}`} />
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
         {type === "Hospital" && (
           <>
@@ -124,6 +189,7 @@ const AddEntryModal = ({ modalOpen, onClose, onSubmit, error }: Props) => {
               value={dischargeDate}
               onChange={(e) => setDischargeDate(e.target.value)}
             />
+
             <TextField
               fullWidth
               margin="dense"
@@ -143,6 +209,7 @@ const AddEntryModal = ({ modalOpen, onClose, onSubmit, error }: Props) => {
               value={employerName}
               onChange={(e) => setEmployerName(e.target.value)}
             />
+
             <TextField
               fullWidth
               margin="dense"
@@ -152,6 +219,7 @@ const AddEntryModal = ({ modalOpen, onClose, onSubmit, error }: Props) => {
               value={sickLeaveStart}
               onChange={(e) => setSickLeaveStart(e.target.value)}
             />
+
             <TextField
               fullWidth
               margin="dense"
@@ -166,14 +234,18 @@ const AddEntryModal = ({ modalOpen, onClose, onSubmit, error }: Props) => {
 
         {type === "HealthCheck" && (
           <TextField
+            select
             fullWidth
             margin="dense"
-            label="Health Check Rating"
-            type="number"
-            inputProps={{ min: 0, max: 3 }}
+            label="Health Rating"
             value={healthCheckRating}
             onChange={(e) => setHealthCheckRating(Number(e.target.value))}
-          />
+          >
+            <MenuItem value={0}>Healthy</MenuItem>
+            <MenuItem value={1}>Low Risk</MenuItem>
+            <MenuItem value={2}>High Risk</MenuItem>
+            <MenuItem value={3}>Critical</MenuItem>
+          </TextField>
         )}
 
         <Button
